@@ -36,8 +36,8 @@ namespace AccessControlSystem
                         "🚪 Списък Врати & Права",   
                         "➕ Добави нов Потребител",
                         "🧱 Добави нова Врата",
-                        "🗑️ ИЗТРИЙ Потребител",
-                        "🗑️ ИЗТРИЙ Врата",      
+                        "🗑️ Изтрий Потребител",
+                        "🗑️ Изтрий Врата",      
                         "📊 LINQ: Последни 10 събития",
                         "💾 Експорт в CSV",
                         "❌ Изход"
@@ -66,18 +66,18 @@ namespace AccessControlSystem
                         break;
 
                     case "📊 LINQ: Последни 10 събития":
-                        db.PrintLast10Events(); // Увери се, че методът ползва AnsiConsole за красота
+                        db.PrintLast10Events();
                         break;
 
                     case "💾 Експорт в CSV":
                         new FileManager().ExportLogsToCsv(db.GetAllLogs());
                         break;
 
-                    case "🗑️ ИЗТРИЙ Потребител":
+                    case "🗑️ Изтрий Потребител":
                         DeleteUserFlow(db);
                         break;
 
-                    case "🗑️ ИЗТРИЙ Врата":
+                    case "🗑️ Изтрий Врата":
                         DeleteDoorFlow(db);
                         break;
                     case "❌ Изход":
