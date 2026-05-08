@@ -1,8 +1,6 @@
 ﻿using System;
-using AccessControlSystem.Models;
-using AccessControlSystem.Events;
-using AccessControlSystem.Controllers;
-using AccessControlSystem.Listeners;
+using AccessControlSystem.Data;
+using AccessControlSystem.Exceptions;
 
 namespace AccessControlSystem
 {
@@ -10,48 +8,38 @@ namespace AccessControlSystem
     {
         static void Main(string[] args)
         {
-            // Оправяме кирилицата в конзолата
             Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-            // 1. Създаваме основните обекти
-            AccessController controller = new AccessController();
-            FileLogger fileLogger = new FileLogger();
-            SecurityService securitySystem = new SecurityService();
+            DatabaseManager dbManager = new DatabaseManager();
+            FileManager fileManager = new FileManager();
 
-            // 2. АБОНИРАНЕ НА СЛУШАТЕЛИТЕ ЗА СЪБИТИЯТА (Изключително важно за изискванията)
-            controller.AccessGranted += fileLogger.LogSuccess;
+            Console.WriteLine("--- СТАРТИРАНЕ НА СИСТЕМАТА ЗА КОНТРОЛ НА ДОСТЪПА ---");
 
-            // Тук виждаме 2 слушателя към 1 събитие!
-            controller.AccessDenied += fileLogger.LogFailure;
-            controller.AccessDenied += securitySystem.HandleSuspiciousActivity;
+            // 1. Демонстрация на обработка на изключения (try-catch)
+            try
+            {
+                dbManager.TestConnection();
+            }
+            catch (DatabaseConnectionException ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(ex.Message);
+                Console.ResetColor();
+                Console.WriteLine("Натисни Enter за изход...");
+                Console.ReadLine();
+                return; // Спираме програмата, ако няма връзка с базата
+            }
 
-            // 3. Създаване на малко фиктивни данни
-            User student = new User("Иван", "Иванов", Role.Student);
-            User admin = new User("Георги", "Димитров", Role.Admin);
+            // 2. Демонстрация на LINQ справки
+            dbManager.PrintLast10Events();
+            dbManager.PrintLogsGroupedByDoor();
+            dbManager.SearchByCard("CARD-111");
 
-            AccessCard cardStudent = new AccessCard("CARD-111", student);
-            AccessCard cardAdmin = new AccessCard("CARD-999", admin);
+            // 3. Демонстрация на експорт във файл
+            var allLogs = dbManager.GetAllLogs();
+            fileManager.ExportLogsToCsv(allLogs);
 
-            Door lab = new Door("Компютърна зала", Role.Student);
-            Door serverRoom = new Door("Сървърно помещение", Role.Admin);
-
-            controller.RegisterCard(cardStudent);
-            controller.RegisterCard(cardAdmin);
-            controller.RegisterDoor(lab);
-            controller.RegisterDoor(serverRoom);
-
-            // 4. Демонстрация
-            Console.WriteLine("--- СИСТЕМА ЗА КОНТРОЛ НА ДОСТЪПА ---\n");
-
-            Console.WriteLine("Опит 1: Ученик опитва да влезе в Компютърната зала...");
-            controller.TryAccess("CARD-111", "Компютърна зала");
-
-            Console.WriteLine("\nОпит 2: Ученик опитва да влезе в Сървърното помещение...");
-            controller.TryAccess("CARD-111", "Сървърно помещение");
-
-            Console.WriteLine("\nОпит 3: Админ опитва да влезе в Сървърното помещение...");
-            controller.TryAccess("CARD-999", "Сървърно помещение");
-
+            Console.WriteLine("\nДемонстрацията завърши. Натиснете Enter.");
             Console.ReadLine();
         }
     }
